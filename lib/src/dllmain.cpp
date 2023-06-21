@@ -8,9 +8,6 @@ using std::to_string;
 HWND unityWnd = nullptr;
 HANDLE hPipe  = nullptr;
 
-// Allow Protocol: GetPlayerToken, PlayerLogin, AchievementAllDataNotify, Ping
-std::set<UINT16> PacketWhitelist = { 175, 196, 102, 172, 2678, 55, 48, 160 };
-
 bool OnPacket(KcpPacket* pkt) {
 	if (pkt->data == nullptr) return true;
 	auto len = pkt->length;
@@ -22,23 +19,14 @@ bool OnPacket(KcpPacket* pkt) {
 		delete[] data;
 		return true;
 	}
-	if (!PacketWhitelist.contains(ReadMapped<UINT16>(data->vector, 2))) {
-		//ifdef _DEBUG
-		printf("Blocked cmdid: %d\n", ReadMapped<UINT16>(data->vector, 2));
-		//endif
-		delete[] data;
-		return false;
-	}
-	printf("Passed cmdid: %d\n", ReadMapped<UINT16>(data->vector, 2));
-	if (ReadMapped<UINT16>(data->vector, 2) == 2678) {
+	printf("cmdid: %d\n", ReadMapped<UINT16>(data->vector, 2));
+	// SceneEntityAppearNotify
+	if (ReadMapped<UINT16>(data->vector, 2) == 248) {
 		auto headLength = ReadMapped<UINT16>(data->vector, 4);
 		auto dataLength = ReadMapped<UINT32>(data->vector, 6);
 		auto iStr = Genshin::ToBase64String(data, 10 + headLength, dataLength, nullptr);
 		auto cStr = ToString(iStr) + "\n";
 		WriteFile(hPipe, cStr.c_str(), cStr.length(), nullptr, nullptr);
-		CloseHandle(hPipe);
-		auto manager = Genshin::GetSingletonInstance(Genshin::GetSingletonManager(), il2cpp_string_new("GameManager"));
-		Genshin::ForceQuit(manager);
 	}
 	delete[] data;
 	return true;
