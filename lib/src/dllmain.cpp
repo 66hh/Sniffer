@@ -20,8 +20,8 @@ bool OnPacket(KcpPacket* pkt) {
 		return true;
 	}
 	printf("cmdid: %d\n", ReadMapped<UINT16>(data->vector, 2));
-	// SceneEntityAppearNotify
-	if (ReadMapped<UINT16>(data->vector, 2) == 248) {
+	// HomeGetArrangementInfoRsp
+	if (ReadMapped<UINT16>(data->vector, 2) == 4672) {
 		auto headLength = ReadMapped<UINT16>(data->vector, 4);
 		auto dataLength = ReadMapped<UINT32>(data->vector, 6);
 		auto iStr = Genshin::ToBase64String(data, 10 + headLength, dataLength, nullptr);
